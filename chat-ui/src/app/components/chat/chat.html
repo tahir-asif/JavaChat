@@ -1,0 +1,70 @@
+<mat-toolbar color="primary">
+  <span>Chat App</span>
+  <span class="spacer"></span>
+  <div class="user-area">
+    <span class="username">User: {{ currentUser }}</span>
+    <button mat-button (click)="logout()">Logout</button>
+  </div>
+</mat-toolbar>
+
+<mat-sidenav-container class="chat-container">
+  <mat-sidenav mode="side" opened>
+    <div class="sidebar">
+      <mat-form-field appearance="fill" class="search-field">
+        <mat-label>Search users</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="searchUsers()">
+        <button mat-icon-button matSuffix (click)="searchUsers()">
+          <mat-icon>search</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-list>
+        <h3 mat-subheader *ngIf="searchResults.length">Search Results</h3>
+        <mat-list-item *ngFor="let user of searchResults">
+          <span matLine>{{ user }}</span>
+          <button mat-icon-button (click)="addContact(user)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </mat-list-item>
+
+        <h3 mat-subheader>Contacts</h3>
+        <mat-list-item *ngFor="let contact of contacts"
+                       (click)="selectContact(contact.username)"
+                       [class.selected]="selectedContact === contact.username">
+          <mat-icon mat-list-icon
+                    [style.color]="contact.online ? 'green' : 'gray'">circle</mat-icon>
+          <span matLine>{{ contact.username }}</span>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="chat-area" *ngIf="selectedContact; else noChat">
+      <div class="messages">
+        <div *ngFor="let msg of messages"
+             class="message"
+             [ngClass]="{'my-message': msg.senderId === currentUser,
+                         'other-message': msg.senderId !== currentUser}">
+          <div class="bubble">
+            <span class="content">{{ msg.content }}</span>
+            <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="input-area">
+        <mat-form-field appearance="fill" class="message-input">
+          <input matInput [(ngModel)]="newMessage"
+                 (keyup.enter)="sendMessage()"
+                 placeholder="Type a message...">
+        </mat-form-field>
+        <button mat-fab color="primary" (click)="sendMessage()">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+    <ng-template #noChat>
+      <div class="no-chat">Select a contact to start chatting</div>
+    </ng-template>
+  </mat-sidenav-content>
+</mat-sidenav-container>

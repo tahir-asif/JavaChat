@@ -1,0 +1,25 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+dist/
+
+# Angular
+.angular/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker volumes
+mongo-data/
+
+# MacOS specific
+.DS_Store
+
+# Secrets
+*.local.properties
+*-local.properties
+.env

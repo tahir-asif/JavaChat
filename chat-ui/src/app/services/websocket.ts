@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Client, IFrame, Message, StompSubscription } from '@stomp/stompjs';
 import { Observable, Subject } from 'rxjs';
 import { Auth } from './auth';
+import { environment } from '../../environments/environment.prod';
 
 export interface ChatMessage {
   id?: string;
@@ -25,8 +26,12 @@ export class WebSocketService implements OnDestroy {
   private connected = false;
 
   constructor(private auth: Auth) {
+    const apiBase = environment.apiUrl.replace(/^https?:\/\//, '');
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = `${wsProtocol}${apiBase}/ws`;
+
     this.client = new Client({
-      webSocketFactory: () => new WebSocket('ws://localhost:8080/ws'),
+      webSocketFactory: () => new WebSocket(wsUrl),
       connectHeaders: {
         Authorization: 'Bearer ' + this.auth.getToken()
       },

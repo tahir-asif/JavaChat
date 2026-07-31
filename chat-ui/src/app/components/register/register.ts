@@ -20,6 +20,7 @@ import { Router } from '@angular/router';
     FormsModule,
     MatCardModule,
     MatFormFieldModule,
+    MatProgressSpinnerModule,
     MatInputModule,
     MatButtonModule,
     RouterModule

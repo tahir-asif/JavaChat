@@ -12,11 +12,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 import { WebSocketService, ChatMessage } from '../../services/websocket';
 import { UserService } from '../../services/user';
 import { Auth } from '../../services/auth';
-import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment.prod';
 
 @Component({
   selector: 'app-chat',
@@ -130,7 +131,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.contacts = this._contacts;
 
       // Immediately fetch the real online status from Auth Service
-      this.http.get<{ online: boolean }>(`http://localhost:8080/api/auth/users/${user}/online`)
+      this.http.get<{ online: boolean }>(`${environment.apiUrl}/api/auth/users/${user}/online`)
         .subscribe({
           next: (res) => {
             const contact = this.contacts.find(c => c.username === user);
@@ -150,7 +151,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.selectedContact = user;
     this.messages = [];
     // Fetch chat history from the REST endpoint
-    this.http.get<ChatMessage[]>(`http://localhost:8080/api/messages/${user}?size=50&page=0`)
+    this.http.get<ChatMessage[]>(`${environment.apiUrl}/api/messages/${user}?size=50&page=0`)
       .subscribe({
         next: (history) => {
           this.messages = history.reverse(); // API returns newest first; we want oldest at top

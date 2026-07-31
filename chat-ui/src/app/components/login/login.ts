@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment.prod';
 import { MatButtonModule } from '@angular/material/button';
 import { Auth } from '../../services/auth';
 import { Router, RouterModule } from '@angular/router';
@@ -18,6 +21,7 @@ import { Router, RouterModule } from '@angular/router';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatProgressSpinnerModule,
     RouterModule
   ],
   template: `
@@ -38,6 +42,10 @@ import { Router, RouterModule } from '@angular/router';
             <button mat-button type="button" routerLink="/register">Register</button>
           </form>
         </mat-card-content>
+        <div *ngIf="isLoading" style="text-align: center; margin-top: 16px;">
+          <mat-spinner diameter="30"></mat-spinner>
+          <p style="font-size: 12px; color: gray;">Loading... Render free tier may take 30-60 seconds.</p>
+        </div>
       </mat-card>
     </div>
   `,
@@ -58,13 +66,31 @@ import { Router, RouterModule } from '@angular/router';
 export class LoginComponent {
   username = '';
   password = '';
+  isLoading = false;
 
-  constructor(private authService: Auth, private router: Router) { }
+  constructor(
+    private authService: Auth,
+    private router: Router,
+    private http: HttpClient
+  ) { }
 
   onSubmit() {
     this.authService.login(this.username, this.password).subscribe({
-      next: () => this.router.navigate(['/chat']),
-      error: () => alert('Invalid credentials')
+      next: () => {
+        this.wakeChatService();
+        this.router.navigate(['/chat'])
+      },
+      error: () => alert('Invalid credentials'),
+      complete: () => {
+        this.isLoading = false;
+      }
     });
+  }
+
+  private wakeChatService(): void {
+    // Sends an authenticated request to the Chat Service to trigger its cold start.
+    // The request may fail (404/401) – we don’t care, we just want Render to spin it up.
+    this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`)
+      .subscribe({ error: () => { } });
   }
 }

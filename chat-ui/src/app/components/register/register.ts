@@ -5,6 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment.prod';
 import { RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
 import { Router } from '@angular/router';
@@ -44,6 +47,10 @@ import { Router } from '@angular/router';
             </button>
           </form>
         </mat-card-content>
+        <div *ngIf="isLoading" style="text-align: center; margin-top: 16px;">
+          <mat-spinner diameter="30"></mat-spinner>
+          <p style="font-size: 12px; color: gray;">Loading... Render free tier may take 30-60 seconds.</p>
+        </div>
       </mat-card>
     </div>
   `,
@@ -64,13 +71,32 @@ import { Router } from '@angular/router';
 export class RegisterComponent {
   username = '';
   password = '';
+  isLoading = false;
 
-  constructor(private auth: Auth, private router: Router) { }
+  constructor(
+    private auth: Auth,
+    private router: Router,
+    private http: HttpClient
+  ) { }
 
   onSubmit() {
     this.auth.register(this.username, this.password).subscribe({
-      next: () => this.router.navigate(['/chat']),
-      error: (err) => alert(err.error?.error || 'Registration failed')
+      next: () => {
+        this.wakeChatService();
+        this.router.navigate(['/chat'])
+      },
+      error: (err) => alert(err.error?.error || 'Registration failed'),
+      complete: () => {
+        this.isLoading = false;
+      }
     });
   }
+
+  private wakeChatService(): void {
+    // Sends an authenticated request to the Chat Service to trigger its cold start.
+    // The request may fail (404/401) – we don’t care, we just want Render to spin it up.
+    this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`)
+      .subscribe({ error: () => { } });
+  }
+
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { interval, Subscription } from 'rxjs'
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -61,6 +61,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private messageSub!: Subscription;
   private presenceSub!: Subscription;
+  private heartbeatSub!: Subscription;
 
   constructor(
     private wsService: WebSocketService,
@@ -105,12 +106,18 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
       });
     });
+
+    this.heartbeatSub = interval(5 * 60 * 1000).subscribe(() => {
+      this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`)
+        .subscribe({ error: () => { } });
+    });
   }
 
   ngOnDestroy(): void {
     this.messageSub?.unsubscribe();
     this.presenceSub?.unsubscribe();
     this.wsService.disconnect();
+    this.heartbeatSub?.unsubscribe();
   }
 
   searchUsers(): void {

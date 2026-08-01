@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment.prod';
 import { RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
 import { Router } from '@angular/router';
+import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-register',
@@ -92,6 +93,13 @@ export class RegisterComponent {
       }
     });
   }
+
+  ngOnInit(): void {
+    // Pre-wake the backend services when the login page loads
+    this.http.get(`${environment.apiUrl}/api/auth/health`, { responseType: 'text' })
+      .subscribe({ error: () => { } });
+  }
+
 
   private wakeChatService(): void {
     // Sends an authenticated request to the Chat Service to trigger its cold start.

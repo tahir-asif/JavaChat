@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -85,6 +86,12 @@ export class LoginComponent {
         this.isLoading = false;
       }
     });
+  }
+
+  ngOnInit(): void {
+    // Pre-wake the backend services when the login page loads
+    this.http.get(`${environment.apiUrl}/api/auth/health`, { responseType: 'text' })
+      .subscribe({ error: () => { } });
   }
 
   private wakeChatService(): void {

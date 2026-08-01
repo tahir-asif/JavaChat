@@ -28,6 +28,11 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("OK");
+    }
+
     // ----- Register -----
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {

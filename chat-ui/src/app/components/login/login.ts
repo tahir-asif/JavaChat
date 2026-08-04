@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment.prod';
 import { MatButtonModule } from '@angular/material/button';
 import { Auth } from '../../services/auth';
@@ -45,7 +45,10 @@ import { Router, RouterModule } from '@angular/router';
         </mat-card-content>
         <div *ngIf="isLoading" style="text-align: center; margin-top: 16px;">
           <mat-spinner diameter="30"></mat-spinner>
-          <p style="font-size: 12px; color: gray;">Loading... Render free tier may take 30-60 seconds.</p>
+          <p style="font-size: 12px; color: gray;">Waking up server… this can take up to 2 minutes on Render free tier.</p>
+        </div>
+        <div *ngIf="serverMessage" style="text-align: center; margin-top: 12px; font-size: 13px; color: #c62828;">
+          {{ serverMessage }}
         </div>
       </mat-card>
     </div>
@@ -68,6 +71,8 @@ export class LoginComponent {
   username = '';
   password = '';
   isLoading = false;
+  isBackendReady = false;
+  serverMessage = '';
 
   constructor(
     private authService: Auth,
@@ -75,23 +80,54 @@ export class LoginComponent {
     private http: HttpClient
   ) { }
 
+  ngOnInit(): void {
+    this.authService.waitUntilReady().then(ready => {
+      this.isBackendReady = ready;
+    });
+  }
+
   onSubmit() {
+    this.isLoading = true;
+    if (this.isBackendReady) {
+      this.doLogin();
+    } else {
+      this.serverMessage = 'Waking up the server, this can take up to 2 minutes…';
+      this.authService.waitUntilReady().then(ready => {
+        if (ready) {
+          this.isBackendReady = true;
+          this.doLogin();
+        } else {
+          this.serverMessage = 'The server is taking too long to wake up. Please try again in a minute.';
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
+  private doLogin(): void {
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
         this.wakeChatService();
         this.router.navigate(['/chat'])
       },
-      error: () => alert('Invalid credentials'),
+      error: (err) => this.onLoginError(err),
       complete: () => {
         this.isLoading = false;
       }
     });
   }
 
-  ngOnInit(): void {
-    // Pre-wake the backend services when the login page loads
-    this.http.get(`${environment.apiUrl}/api/auth/health`, { responseType: 'text' })
-      .subscribe({ error: () => { } });
+  private onLoginError(err: HttpErrorResponse): void {
+    if (err.status === 401) {
+      this.serverMessage = 'Invalid username or password.';
+      this.isLoading = false;
+    } else if (err.status === 502 || err.status === 504) {
+      this.serverMessage = 'Server is still starting, retrying…';
+      setTimeout(() => this.doLogin(), 3000);
+    } else {
+      this.serverMessage = 'Something went wrong. Please try again.';
+      this.isLoading = false;
+    }
   }
 
   private wakeChatService(): void {

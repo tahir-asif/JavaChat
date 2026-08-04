@@ -16,11 +16,19 @@ export class Auth {
 
   constructor(private http: HttpClient) { }
 
-  // Fire requests that force Render to spin up every sleeping service.
-  // A 401 from protected /api/messages is fine: it still warms chat's JVM.
+  // Wakes every sleeping Render service in parallel at t=0:
+  // the gateway via a readable CORS request, auth and chat via no-cors fetches
+  // that wake the container without needing CORS (responses are not read).
   warm(): void {
     this.http.get(`${this.baseUrl}/health`, { responseType: 'text' }).subscribe({ error: () => {} });
-    this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`).subscribe({ error: () => {} });
+    this.noCorsGet(`${environment.authUrl}/api/auth/health`);
+    this.noCorsGet(`${environment.chatUrl}/api/messages/wakeup?page=0&size=1`);
+  }
+
+  // Sends a request that forces Render to spin the service up; the response is
+  // intentionally discarded. Rejects only on network failure, which is fine.
+  private noCorsGet(url: string): void {
+    fetch(url, { mode: 'no-cors' }).catch(() => {});
   }
 
   // Polls /api/auth/health every intervalMs until it returns 200, or gives up

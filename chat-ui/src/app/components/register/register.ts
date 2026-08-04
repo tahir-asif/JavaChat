@@ -29,7 +29,7 @@ import { OnInit } from '@angular/core';
   template: `
     <div class="auth-container">
       <mat-card>
-        <mat-card-title style="text-align: center; margin: 4px 0 12px 0;">Register</mat-card-title>
+        <mat-card-title style="text-align: left; margin: 4px 0 12px 0;">Register</mat-card-title>
         <mat-card-content>
           <form #registerForm="ngForm" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="fill">

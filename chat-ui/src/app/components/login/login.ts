@@ -28,7 +28,7 @@ import { Router, RouterModule } from '@angular/router';
   template: `
     <div class="auth-container">
       <mat-card>
-        <mat-card-title style="text-align: center; margin: 4px 0 12px 0;">Login</mat-card-title>
+        <mat-card-title style="text-align: left; margin: 4px 0 12px 0;">Login</mat-card-title>
         <mat-card-content>
           <form (ngSubmit)="onSubmit()">
             <mat-form-field appearance="fill">

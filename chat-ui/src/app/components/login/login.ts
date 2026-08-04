@@ -28,7 +28,7 @@ import { Router, RouterModule } from '@angular/router';
   template: `
     <div class="auth-container">
       <mat-card>
-        <mat-card-title>Login</mat-card-title>
+        <mat-card-title style="text-align: center; margin: 4px 0 12px 0;">Login</mat-card-title>
         <mat-card-content>
           <form (ngSubmit)="onSubmit()">
             <mat-form-field appearance="fill">
@@ -44,8 +44,12 @@ import { Router, RouterModule } from '@angular/router';
           </form>
         </mat-card-content>
         <div *ngIf="isLoading" style="text-align: center; margin-top: 16px;">
-          <mat-spinner diameter="30"></mat-spinner>
-          <p style="font-size: 12px; color: gray;">Waking up server… this can take up to 2 minutes on Render free tier.</p>
+          <div style="display: flex; justify-content: center;">
+            <mat-spinner diameter="30"></mat-spinner>
+          </div>
+          <p style="font-size: 12px; color: gray; margin-top: 8px;">
+            Waking up server… this can take up to 2 minutes on Render's free tier. Elapsed time: {{ elapsedSeconds }}s
+          </p>
         </div>
         <div *ngIf="serverMessage" style="text-align: center; margin-top: 12px; font-size: 13px; color: #c62828;">
           {{ serverMessage }}
@@ -73,6 +77,8 @@ export class LoginComponent {
   isLoading = false;
   isBackendReady = false;
   serverMessage = '';
+  elapsedSeconds = 0;
+  private elapsedTimer?: any;
 
   constructor(
     private authService: Auth,
@@ -88,10 +94,10 @@ export class LoginComponent {
 
   onSubmit() {
     this.isLoading = true;
+    this.startTimer();
     if (this.isBackendReady) {
       this.doLogin();
     } else {
-      this.serverMessage = 'Waking up the server, this can take up to 2 minutes…';
       this.authService.waitUntilReady().then(ready => {
         if (ready) {
           this.isBackendReady = true;
@@ -99,6 +105,7 @@ export class LoginComponent {
         } else {
           this.serverMessage = 'The server is taking too long to wake up. Please try again in a minute.';
           this.isLoading = false;
+          this.stopTimer();
         }
       });
     }
@@ -108,6 +115,7 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
         this.wakeChatService();
+        this.stopTimer();
         this.router.navigate(['/chat'])
       },
       error: (err) => this.onLoginError(err),
@@ -121,13 +129,24 @@ export class LoginComponent {
     if (err.status === 401) {
       this.serverMessage = 'Invalid username or password.';
       this.isLoading = false;
+      this.stopTimer();
     } else if (err.status === 502 || err.status === 504) {
-      this.serverMessage = 'Server is still starting, retrying…';
       setTimeout(() => this.doLogin(), 3000);
     } else {
       this.serverMessage = 'Something went wrong. Please try again.';
       this.isLoading = false;
+      this.stopTimer();
     }
+  }
+
+  private startTimer(): void {
+    this.elapsedSeconds = 0;
+    clearInterval(this.elapsedTimer);
+    this.elapsedTimer = setInterval(() => this.elapsedSeconds++, 1000);
+  }
+
+  private stopTimer(): void {
+    clearInterval(this.elapsedTimer);
   }
 
   private wakeChatService(): void {

@@ -11,7 +11,36 @@ export interface AuthResponse {
 export class Auth {
   private readonly baseUrl = environment.apiUrl + '/api/auth';
 
+  isBackendReady = false;
+
   constructor(private http: HttpClient) { }
+
+  // Fire requests that force Render to spin up every sleeping service.
+  // A 401 from protected /api/messages is fine: it still warms chat's JVM.
+  warm(): void {
+    this.http.get(`${this.baseUrl}/health`, { responseType: 'text' }).subscribe({ error: () => {} });
+    this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`).subscribe({ error: () => {} });
+  }
+
+  // Polls /api/auth/health every intervalMs until it returns 200, or gives up
+  // after maxAttempts. Resolves true once the backend is ready.
+  waitUntilReady(maxAttempts = 20, intervalMs = 5000): Promise<boolean> {
+    this.warm();
+    if (this.isBackendReady) return Promise.resolve(true);
+    return new Promise(resolve => {
+      let attempts = 0;
+      const check = () => {
+        if (this.isBackendReady) return resolve(true);
+        if (attempts >= maxAttempts) return resolve(false);
+        attempts += 1;
+        this.http.get(`${this.baseUrl}/health`, { responseType: 'text' }).subscribe({
+          next: () => { this.isBackendReady = true; resolve(true); },
+          error: () => setTimeout(check, intervalMs),
+        });
+      };
+      check();
+    });
+  }
 
   register(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/register`, { username, password })

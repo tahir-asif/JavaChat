@@ -12,6 +12,7 @@ export class Auth {
   private readonly baseUrl = environment.apiUrl + '/api/auth';
 
   isBackendReady = false;
+  private readinessPromise: Promise<boolean> | null = null;
 
   constructor(private http: HttpClient) { }
 
@@ -24,22 +25,31 @@ export class Auth {
 
   // Polls /api/auth/health every intervalMs until it returns 200, or gives up
   // after maxAttempts. Resolves true once the backend is ready.
-  waitUntilReady(maxAttempts = 20, intervalMs = 5000): Promise<boolean> {
-    this.warm();
+  // The poll loop is shared: concurrent callers await the same promise.
+  waitUntilReady(maxAttempts = 60, intervalMs = 5000): Promise<boolean> {
     if (this.isBackendReady) return Promise.resolve(true);
-    return new Promise(resolve => {
+    if (this.readinessPromise) return this.readinessPromise;
+    this.warm();
+    this.readinessPromise = new Promise(resolve => {
       let attempts = 0;
       const check = () => {
-        if (this.isBackendReady) return resolve(true);
-        if (attempts >= maxAttempts) return resolve(false);
+        if (this.isBackendReady) {
+          this.readinessPromise = null;
+          return resolve(true);
+        }
+        if (attempts >= maxAttempts) {
+          this.readinessPromise = null;
+          return resolve(false);
+        }
         attempts += 1;
         this.http.get(`${this.baseUrl}/health`, { responseType: 'text' }).subscribe({
-          next: () => { this.isBackendReady = true; resolve(true); },
+          next: () => { this.isBackendReady = true; this.readinessPromise = null; resolve(true); },
           error: () => setTimeout(check, intervalMs),
         });
       };
       check();
     });
+    return this.readinessPromise;
   }
 
   register(username: string, password: string): Observable<AuthResponse> {

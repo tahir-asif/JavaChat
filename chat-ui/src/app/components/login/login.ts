@@ -48,7 +48,7 @@ import { Router, RouterModule } from '@angular/router';
             <mat-spinner diameter="30"></mat-spinner>
           </div>
           <p style="font-size: 12px; color: gray; margin-top: 8px;">
-            Waking up server… this can take up to 2 minutes on Render's free tier. Elapsed time: {{ elapsedSeconds }}s
+            Waking up server… this can take up to 5 minutes on Render's free tier. Elapsed time: {{ elapsedSeconds }}s
           </p>
         </div>
         <div *ngIf="serverMessage" style="text-align: center; margin-top: 12px; font-size: 13px; color: #c62828;">
@@ -79,6 +79,8 @@ export class LoginComponent {
   serverMessage = '';
   elapsedSeconds = 0;
   private elapsedTimer?: any;
+  private loginAttempts = 0;
+  private readonly maxLoginAttempts = 5;
 
   constructor(
     private authService: Auth,
@@ -94,6 +96,7 @@ export class LoginComponent {
 
   onSubmit() {
     this.isLoading = true;
+    this.loginAttempts = 0;
     this.startTimer();
     if (this.isBackendReady) {
       this.doLogin();
@@ -103,7 +106,7 @@ export class LoginComponent {
           this.isBackendReady = true;
           this.doLogin();
         } else {
-          this.serverMessage = 'The server is taking too long to wake up. Please try again in a minute.';
+          this.serverMessage = 'The server is taking too long to wake up. Please try again.';
           this.isLoading = false;
           this.stopTimer();
         }
@@ -115,13 +118,11 @@ export class LoginComponent {
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
         this.wakeChatService();
+        this.isLoading = false;
         this.stopTimer();
         this.router.navigate(['/chat'])
       },
       error: (err) => this.onLoginError(err),
-      complete: () => {
-        this.isLoading = false;
-      }
     });
   }
 
@@ -131,7 +132,14 @@ export class LoginComponent {
       this.isLoading = false;
       this.stopTimer();
     } else if (err.status === 502 || err.status === 504) {
-      setTimeout(() => this.doLogin(), 3000);
+      if (this.loginAttempts < this.maxLoginAttempts) {
+        this.loginAttempts += 1;
+        setTimeout(() => this.doLogin(), 3000);
+      } else {
+        this.serverMessage = 'The server is still not responding. Please try again in a minute.';
+        this.isLoading = false;
+        this.stopTimer();
+      }
     } else {
       this.serverMessage = 'Something went wrong. Please try again.';
       this.isLoading = false;

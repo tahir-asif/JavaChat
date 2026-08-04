@@ -54,7 +54,7 @@ import { OnInit } from '@angular/core';
             <mat-spinner diameter="30"></mat-spinner>
           </div>
           <p style="font-size: 12px; color: gray; margin-top: 8px;">
-            Waking up server… this can take up to 2 minutes on Render's free tier. Elapsed time: {{ elapsedSeconds }}s
+            Waking up server… this can take up to 5 minutes on Render's free tier. Elapsed time: {{ elapsedSeconds }}s
           </p>
         </div>
         <div *ngIf="serverMessage" style="text-align: center; margin-top: 12px; font-size: 13px; color: #c62828;">

@@ -155,9 +155,9 @@ export class RegisterComponent {
   }
 
   private wakeChatService(): void {
-    // Sends an authenticated request to the Chat Service to trigger its cold start.
+    // Sends a request to the Chat Service to trigger its cold start.
     // The request may fail (404/401) – we don’t care, we just want Render to spin it up.
-    this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`)
+    this.http.get(`${environment.apiUrl}/api/messages/health`)
       .subscribe({ error: () => { } });
   }
 

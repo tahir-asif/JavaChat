@@ -22,7 +22,7 @@ export class Auth {
   warm(): void {
     this.noCorsGet(`${environment.apiUrl}/api/auth/health`);                    // gateway
     this.noCorsGet(`${environment.authUrl}/api/auth/health`);                   // auth
-    this.noCorsGet(`${environment.chatUrl}/api/messages/wakeup?page=0&size=1`); // chat
+    this.noCorsGet(`${environment.chatUrl}/api/messages/health`); // chat
   }
 
   // Sends a request that forces Render to spin the service up; the response is

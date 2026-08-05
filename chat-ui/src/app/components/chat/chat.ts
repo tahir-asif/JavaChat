@@ -108,7 +108,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
 
     this.heartbeatSub = interval(5 * 60 * 1000).subscribe(() => {
-      this.http.get(`${environment.apiUrl}/api/messages/wakeup?page=0&size=1`)
+      this.http.get(`${environment.apiUrl}/api/messages/health`)
         .subscribe({ error: () => { } });
     });
   }

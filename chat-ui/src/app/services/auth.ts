@@ -16,13 +16,13 @@ export class Auth {
 
   constructor(private http: HttpClient) { }
 
-  // Wakes every sleeping Render service in parallel at t=0:
-  // the gateway via a readable CORS request, auth and chat via no-cors fetches
-  // that wake the container without needing CORS (responses are not read).
+  // Wakes every sleeping Render service in parallel at t=0. All three targets
+  // use the same no-cors fetch, which reliably triggers Render to spin the
+  // container up (responses are not read, so CORS is not required).
   warm(): void {
-    this.http.get(`${this.baseUrl}/health`, { responseType: 'text' }).subscribe({ error: () => {} });
-    this.noCorsGet(`${environment.authUrl}/api/auth/health`);
-    this.noCorsGet(`${environment.chatUrl}/api/messages/wakeup?page=0&size=1`);
+    this.noCorsGet(`${environment.apiUrl}/api/auth/health`);                    // gateway
+    this.noCorsGet(`${environment.authUrl}/api/auth/health`);                   // auth
+    this.noCorsGet(`${environment.chatUrl}/api/messages/wakeup?page=0&size=1`); // chat
   }
 
   // Sends a request that forces Render to spin the service up; the response is

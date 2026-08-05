@@ -20,6 +20,11 @@ public class MessageController {
         this.messageRepository = messageRepository;
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("OK");
+    }
+
     @GetMapping("/{otherUser}")
     public ResponseEntity<List<Message>> getChatHistory(
             @PathVariable String otherUser,

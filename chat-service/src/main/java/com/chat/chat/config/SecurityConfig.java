@@ -33,6 +33,8 @@ public class SecurityConfig {
                         // WebSocket handshake (HTTP upgrade) must be publicly accessible.
                         // Real auth happens later via STOMP interceptor.
                         .requestMatchers("/ws/**").permitAll()
+                        // Health check used to wake the service and probe readiness.
+                        .requestMatchers("/api/messages/health").permitAll()
                         // All other endpoints (message history) require a valid JWT
                         .anyRequest().authenticated());
 

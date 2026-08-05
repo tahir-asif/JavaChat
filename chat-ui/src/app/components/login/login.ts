@@ -97,10 +97,10 @@ export class LoginComponent {
   onSubmit() {
     this.isLoading = true;
     this.loginAttempts = 0;
-    this.startTimer();
     if (this.isBackendReady) {
       this.doLogin();
     } else {
+      this.startTimer();
       this.authService.waitUntilReady().then(ready => {
         if (ready) {
           this.isBackendReady = true;

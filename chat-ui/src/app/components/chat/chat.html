@@ -11,7 +11,7 @@
   <mat-sidenav mode="side" opened>
     <div class="sidebar">
       <mat-form-field appearance="fill" class="search-field">
-        <mat-label>Search users</mat-label>
+        <mat-label>Add Contact</mat-label>
         <input matInput [(ngModel)]="searchQuery" (keyup.enter)="searchUsers()">
         <button mat-icon-button matSuffix (click)="searchUsers()">
           <mat-icon>search</mat-icon>
@@ -20,12 +20,12 @@
 
       <mat-list>
         <h3 mat-subheader *ngIf="searchResults.length">Search Results</h3>
-        <mat-list-item *ngFor="let user of searchResults">
-          <span matLine>{{ user }}</span>
+        <div *ngFor="let user of searchResults" class="search-result">
           <button mat-icon-button (click)="addContact(user)">
             <mat-icon>add</mat-icon>
           </button>
-        </mat-list-item>
+          <span class="search-result-name">{{ user }}</span>
+        </div>
 
         <h3 mat-subheader>Contacts</h3>
         <mat-list-item *ngFor="let contact of contacts"

@@ -4,11 +4,21 @@ server:
 spring:
   cloud:
     gateway:
-      httpclient:
-        connect-timeout: 120000 # 2 minutes
-        response-timeout: 120s
       server:
         webflux:
+          httpclient:
+            connect-timeout: 120000 # 2 minutes
+            response-timeout: 120s
+          default-filters:
+            - name: Retry
+              args:
+                retries: 4
+                methods: GET, POST
+                statuses: BAD_GATEWAY, GATEWAY_TIMEOUT, SERVICE_UNAVAILABLE
+                backoff:
+                  firstBackoff: 2s
+                  maxBackoff: 30s
+                  factor: 2
           routes:
             - id: auth-service
               uri: ${AUTH_SERVICE_URI:http://localhost:8081}

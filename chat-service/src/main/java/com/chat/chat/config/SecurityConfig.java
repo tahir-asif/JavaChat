@@ -35,6 +35,8 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         // Health check used to wake the service and probe readiness.
                         .requestMatchers("/api/messages/health").permitAll()
+                        // Presence: who is online right now.
+                        .requestMatchers("/api/messages/online").permitAll()
                         // All other endpoints (message history) require a valid JWT
                         .anyRequest().authenticated());
 

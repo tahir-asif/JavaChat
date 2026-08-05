@@ -2,6 +2,7 @@ package com.chat.chat.controller;
 
 import com.chat.chat.model.Message;
 import com.chat.chat.repository.MessageRepository;
+import com.chat.chat.service.PresenceTracker;
 import lombok.Data;
 import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -23,13 +24,16 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageRepository messageRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final PresenceTracker presenceTracker;
 
     public ChatController(SimpMessagingTemplate messagingTemplate,
             MessageRepository messageRepository,
-            KafkaTemplate<String, Object> kafkaTemplate) {
+            KafkaTemplate<String, Object> kafkaTemplate,
+            PresenceTracker presenceTracker) {
         this.messagingTemplate = messagingTemplate;
         this.messageRepository = messageRepository;
         this.kafkaTemplate = kafkaTemplate;
+        this.presenceTracker = presenceTracker;
     }
 
     // ----- Private messaging -----
@@ -72,10 +76,13 @@ public class ChatController {
             String username = event.getUser().getName();
             System.out.println(">>> PRESENCE: " + username + " online=true");
 
-            // kafkaTemplate.send("user-presence",
-            // Map.of("username", username, "online", true));
-            messagingTemplate.convertAndSend("/topic/presence",
-                    Map.of("username", username, "online", true));
+            // Broadcast only when this session is the first one open
+            if (presenceTracker.connect(username)) {
+                // kafkaTemplate.send("user-presence",
+                // Map.of("username", username, "online", true));
+                messagingTemplate.convertAndSend("/topic/presence",
+                        Map.of("username", username, "online", true));
+            }
         } else {
             System.out.println(">>> CONNECT EVENT: user is null");
         }
@@ -88,10 +95,13 @@ public class ChatController {
             String username = event.getUser().getName();
             System.out.println(">>> PRESENCE: " + username + " online=false");
 
-            // kafkaTemplate.send("user-presence",
-            // Map.of("username", username, "online", false));
-            messagingTemplate.convertAndSend("/topic/presence",
-                    Map.of("username", username, "online", false));
+            // Broadcast only when the last session closed
+            if (presenceTracker.disconnect(username)) {
+                // kafkaTemplate.send("user-presence",
+                // Map.of("username", username, "online", false));
+                messagingTemplate.convertAndSend("/topic/presence",
+                        Map.of("username", username, "online", false));
+            }
         } else {
             System.out.println(">>> DISCONNECT EVENT: user is null");
         }

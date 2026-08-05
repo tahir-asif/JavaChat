@@ -62,6 +62,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   private messageSub!: Subscription;
   private presenceSub!: Subscription;
   private heartbeatSub!: Subscription;
+  private presencePollSub!: Subscription;
+
+  private onlineUsers = new Set<string>();
 
   constructor(
     private wsService: WebSocketService,
@@ -77,6 +80,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadContacts();
     this.wsService.connect();
+    this.refreshPresence();
+
+    this.presencePollSub = interval(25 * 1000).subscribe(() => this.refreshPresence());
 
     this.messageSub = this.wsService.getMessageStream().subscribe(msg => {
       this.ngZone.run(() => {
@@ -118,6 +124,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.presenceSub?.unsubscribe();
     this.wsService.disconnect();
     this.heartbeatSub?.unsubscribe();
+    this.presencePollSub?.unsubscribe();
   }
 
   searchUsers(): void {
@@ -130,24 +137,26 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Fetches the set of currently-connected users from the Chat Service and
+  // marks matching contacts as online. Failures are ignored; the next poll
+  // (or a STOMP presence event) will catch up.
+  refreshPresence(): void {
+    this.http.get<string[]>(`${environment.apiUrl}/api/messages/online`)
+      .subscribe({
+        next: (users) => {
+          this.onlineUsers = new Set(users);
+          this._contacts.forEach(c => c.online = this.onlineUsers.has(c.username));
+        },
+        error: () => { /* ignore – retried on the next poll */ }
+      });
+  }
+
   addContact(user: string): void {
     if (!this.contacts.find(c => c.username === user)) {
-      // Add with default offline status
-      const newContact = { username: user, online: false };
+      // Add with online status from the latest presence poll
+      const newContact = { username: user, online: this.onlineUsers.has(user) };
       this.contacts.push(newContact);
       this.contacts = this._contacts;
-
-      // Immediately fetch the real online status from Auth Service
-      this.http.get<{ online: boolean }>(`${environment.apiUrl}/api/auth/users/${user}/online`)
-        .subscribe({
-          next: (res) => {
-            const contact = this.contacts.find(c => c.username === user);
-            if (contact) {
-              contact.online = res.online;
-            }
-          },
-          error: () => { /* ignore – user might not exist */ }
-        });
     }
     this.searchResults = [];
     this.searchQuery = '';

@@ -33,14 +33,14 @@ import { Router, RouterModule } from '@angular/router';
           <form (ngSubmit)="onSubmit()">
             <mat-form-field appearance="fill">
               <mat-label>Username</mat-label>
-              <input matInput [(ngModel)]="username" name="username" required>
+              <input matInput [(ngModel)]="username" name="username" required [disabled]="isLoading">
             </mat-form-field>
             <mat-form-field appearance="fill">
               <mat-label>Password</mat-label>
-              <input matInput type="password" [(ngModel)]="password" name="password" required>
+              <input matInput type="password" [(ngModel)]="password" name="password" required [disabled]="isLoading">
             </mat-form-field>
-            <button mat-raised-button color="primary" type="submit">Login</button>
-            <button mat-button type="button" routerLink="/register">Register</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="isLoading">Login</button>
+            <button mat-button type="button" routerLink="/register" [disabled]="isLoading">Register</button>
           </form>
         </mat-card-content>
         <div *ngIf="isLoading" style="text-align: center; margin-top: 16px;">
@@ -95,6 +95,7 @@ export class LoginComponent {
   }
 
   onSubmit() {
+    if (this.isLoading) return;
     this.isLoading = true;
     this.loginAttempts = 0;
     if (this.isBackendReady) {

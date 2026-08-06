@@ -34,17 +34,17 @@ import { OnInit } from '@angular/core';
           <form #registerForm="ngForm" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="fill">
               <mat-label>Username</mat-label>
-              <input matInput [(ngModel)]="username" name="username" required>
+              <input matInput [(ngModel)]="username" name="username" required [disabled]="isLoading">
             </mat-form-field>
             <mat-form-field appearance="fill">
               <mat-label>Password</mat-label>
-              <input matInput type="password" [(ngModel)]="password" name="password" required>
+              <input matInput type="password" [(ngModel)]="password" name="password" required [disabled]="isLoading">
             </mat-form-field>
             <button mat-raised-button color="primary" type="submit"
-                    [disabled]="!registerForm.valid">
+                    [disabled]="!registerForm.valid || isLoading">
               Register
             </button>
-            <button mat-button type="button" routerLink="/login">
+            <button mat-button type="button" routerLink="/login" [disabled]="isLoading">
               Back to login
             </button>
           </form>
@@ -99,6 +99,7 @@ export class RegisterComponent {
   }
 
   onSubmit() {
+    if (this.isLoading) return;
     this.isLoading = true;
     this.startTimer();
     const doRegister = () => {

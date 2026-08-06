@@ -12,6 +12,7 @@ import { RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
 import { Router } from '@angular/router';
 import { OnInit } from '@angular/core';
+import { GithubLinkComponent } from '../github-link/github-link';
 
 @Component({
   selector: 'app-register',
@@ -24,10 +25,12 @@ import { OnInit } from '@angular/core';
     MatProgressSpinnerModule,
     MatInputModule,
     MatButtonModule,
-    RouterModule
+    RouterModule,
+    GithubLinkComponent
   ],
   template: `
     <div class="auth-container">
+      <app-github-link></app-github-link>
       <mat-card>
         <mat-card-title style="text-align: left; margin: 4px 0 12px 0;">Register</mat-card-title>
         <mat-card-content>

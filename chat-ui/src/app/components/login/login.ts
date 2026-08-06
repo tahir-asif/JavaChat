@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment.prod';
 import { MatButtonModule } from '@angular/material/button';
 import { Auth } from '../../services/auth';
 import { Router, RouterModule } from '@angular/router';
+import { GithubLinkComponent } from '../github-link/github-link';
 
 @Component({
   selector: 'app-login',
@@ -23,10 +24,12 @@ import { Router, RouterModule } from '@angular/router';
     MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    RouterModule
+    RouterModule,
+    GithubLinkComponent
   ],
   template: `
     <div class="auth-container">
+      <app-github-link></app-github-link>
       <mat-card>
         <mat-card-title style="text-align: left; margin: 4px 0 12px 0;">Login</mat-card-title>
         <mat-card-content>

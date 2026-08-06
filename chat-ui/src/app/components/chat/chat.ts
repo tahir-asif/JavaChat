@@ -19,6 +19,7 @@ import { WebSocketService, ChatMessage } from '../../services/websocket';
 import { UserService } from '../../services/user';
 import { Auth } from '../../services/auth';
 import { environment } from '../../../environments/environment.prod';
+import { GithubLinkComponent } from '../github-link/github-link';
 
 @Component({
   selector: 'app-chat',
@@ -34,6 +35,7 @@ import { environment } from '../../../environments/environment.prod';
     MatIconModule,
     MatCardModule,
     MatFormFieldModule,
+    GithubLinkComponent
   ],
   templateUrl: './chat.html',
   styleUrls: ['./chat.scss']

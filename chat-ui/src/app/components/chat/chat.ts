@@ -58,6 +58,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   messages: ChatMessage[] = [];
   newMessage = '';
   currentUser = '';
+  sidebarOpened = true;
 
   private messageSub!: Subscription;
   private presenceSub!: Subscription;

@@ -1,4 +1,7 @@
 <mat-toolbar color="primary">
+  <button mat-icon-button (click)="sidebarOpened = !sidebarOpened" aria-label="Toggle sidebar">
+    <mat-icon>{{ sidebarOpened ? 'menu_open' : 'menu' }}</mat-icon>
+  </button>
   <span>Chat App</span>
   <span class="spacer"></span>
   <div class="user-area">
@@ -8,7 +11,7 @@
 </mat-toolbar>
 
 <mat-sidenav-container class="chat-container">
-  <mat-sidenav mode="side" opened>
+  <mat-sidenav mode="side" [opened]="sidebarOpened">
     <div class="sidebar">
       <mat-form-field appearance="fill" class="search-field">
         <mat-label>Add Contact</mat-label>

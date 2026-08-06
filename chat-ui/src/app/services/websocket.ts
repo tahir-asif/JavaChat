@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Client, IFrame, Message, StompSubscription } from '@stomp/stompjs';
 import { Observable, Subject } from 'rxjs';
 import { Auth } from './auth';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 
 export interface ChatMessage {
   id?: string;

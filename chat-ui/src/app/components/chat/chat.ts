@@ -18,7 +18,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { WebSocketService, ChatMessage } from '../../services/websocket';
 import { UserService } from '../../services/user';
 import { Auth } from '../../services/auth';
-import { environment } from '../../../environments/environment.prod';
+import { environment } from '../../../environments/environment';
 import { GithubLinkComponent } from '../github-link/github-link';
 
 @Component({

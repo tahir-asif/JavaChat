@@ -51,7 +51,7 @@
                          'other-message': msg.senderId !== currentUser}">
           <div class="bubble">
             <span class="content">{{ msg.content }}</span>
-            <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+            <span class="timestamp">{{ msg.timestamp | date:'d MMM yyyy, h:mm a' }}</span>
           </div>
         </div>
       </div>

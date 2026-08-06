@@ -13,6 +13,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 import { WebSocketService, ChatMessage } from '../../services/websocket';
 import { UserService } from '../../services/user';
@@ -59,11 +60,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   newMessage = '';
   currentUser = '';
   sidebarOpened = true;
+  sidenavMode: 'over' | 'side' = 'side';
+  isMobile = false;
 
   private messageSub!: Subscription;
   private presenceSub!: Subscription;
   private heartbeatSub!: Subscription;
   private presencePollSub!: Subscription;
+  private breakpointSub!: Subscription;
 
   private onlineUsers = new Set<string>();
 
@@ -74,6 +78,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private http: HttpClient,
     private router: Router,
+    private breakpointObserver: BreakpointObserver,
   ) {
     this.currentUser = this.auth.getUsername() || '';
   }
@@ -82,6 +87,15 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.loadContacts();
     this.wsService.connect();
     this.refreshPresence();
+
+    this.breakpointSub = this.breakpointObserver
+      .observe(['(max-width: 750px)'])
+      .subscribe(result => {
+        this.isMobile = result.matches;
+        this.sidenavMode = result.matches ? 'over' : 'side';
+        // Collapsed by default on small screens, visible on wide screens.
+        this.sidebarOpened = !result.matches;
+      });
 
     this.presencePollSub = interval(25 * 1000).subscribe(() => this.refreshPresence());
 
@@ -126,6 +140,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.wsService.disconnect();
     this.heartbeatSub?.unsubscribe();
     this.presencePollSub?.unsubscribe();
+    this.breakpointSub?.unsubscribe();
   }
 
   searchUsers(): void {
@@ -167,6 +182,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   selectContact(user: string): void {
     this.selectedContact = user;
     this.messages = [];
+    // On small screens the sidebar floats over the chat; close it so the
+    // conversation is fully visible.
+    if (this.isMobile) {
+      this.sidebarOpened = false;
+    }
     // Fetch chat history from the REST endpoint
     this.http.get<ChatMessage[]>(`${environment.apiUrl}/api/messages/${user}?size=50&page=0`)
       .subscribe({

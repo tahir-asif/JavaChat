@@ -46,7 +46,7 @@ public class MessageController {
 
         // Fetch messages between currentUser and otherUser, newest first
         List<Message> messages = messageRepository
-                .findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByTimestampDesc(
+                .findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByTimestampDescIdDesc(
                         currentUser, otherUser, // sender=currentUser, receiver=otherUser
                         currentUser, otherUser, // receiver=currentUser, sender=otherUser ← param3=receiverId,
                                                 // param4=senderId

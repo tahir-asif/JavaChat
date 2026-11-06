@@ -26,6 +26,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/topic", "/queue");
         // Prefix for messages bound for methods annotated with @MessageMapping
         registry.setApplicationDestinationPrefixes("/app");
+        // Process and deliver messages from the same session in publish order.
+        registry.setPreservePublishOrder(true);
     }
 
     @Override
@@ -36,6 +38,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Handle messages from the same client session in the order received.
+        registry.setPreserveReceiveOrder(true);
+
         // SockJS fallback (keep if you want, but we won't use it)
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")

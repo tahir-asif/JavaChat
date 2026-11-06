@@ -23,3 +23,7 @@ mongo-data/
 *.local.properties
 *-local.properties
 .env
+
+# Metrics harness
+metrics/results/*
+!metrics/results/.gitkeep

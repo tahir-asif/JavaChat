@@ -1,6 +1,7 @@
 # JavaChat
 
-A real-time chat application built with an Angular frontend and Java Spring Boot microservices.
+A real-time chat application built with an Angular frontend and Java Spring Boot
+microservices.
 
 Available at: [java-chat-zeta.vercel.app](https://java-chat-zeta.vercel.app/)
 
@@ -12,7 +13,8 @@ Available at: [java-chat-zeta.vercel.app](https://java-chat-zeta.vercel.app/)
   - `auth-service` - registration, login, JWT issuance, user search
   - `chat-service` - message persistence, STOMP/WebSocket messaging, presence
 - **Database:** MongoDB (Atlas in production, Docker for local)
-- **Messaging:** WebSocket (STOMP). Kafka is scaffolded but disabled (see Limitations).
+- **Messaging:** WebSocket (STOMP). Kafka is scaffolded but disabled (see
+  Limitations).
 
 ## Features
 
@@ -25,37 +27,25 @@ Available at: [java-chat-zeta.vercel.app](https://java-chat-zeta.vercel.app/)
 
 ## Architecture
 
-```
-+------------+     +----------------------+
-|  Browser   | --> |     api-gateway      |
-| (Angular)  |     |  (Spring Cloud GW)   |
-+------------+     +----------+-----------+
-                              |
-        +---------------------+--------+
-        | /api/auth/**, /api/users/**  | /api/messages/**, /ws/**
-        v                              v
-+------------------+            +------------------+
-|   auth-service   |            |   chat-service   |
-|  (users, JWT)    |            | (messages, STOMP) |
-+------------------+            +------------------+
-        |                              |
-        v                              v
-   [ authdb ]                     [ chatdb ]
-   (MongoDB)                     (MongoDB)
+```mermaid
+flowchart TD
+    browser["Browser<br/>(Angular)"]
+    gateway["api-gateway<br/>(Spring Cloud GW)"]
+    auth["auth-service<br/>(users, JWT)"]
+    chat["chat-service<br/>(messages, STOMP)"]
+    authdb[("authdb<br/>(MongoDB)")]
+    chatdb[("chatdb<br/>(MongoDB)")]
+
+    browser --> gateway
+    gateway -->|"/api/auth/**, /api/users/**"| auth
+    gateway -->|"/api/messages/**, /ws/**"| chat
+    auth --> authdb
+    chat --> chatdb
 ```
 
-Each service has its own MongoDB database (`authdb`, `chatdb`). All client web traffic flows through the single gateway, which also proxies WebSocket upgrades for STOMP.
-
-## Repository layout
-
-```
-.
-├── api-gateway/         # Spring Cloud Gateway (routes, CORS, retry filter)
-├── auth-service/        # Users, JWT, auth + user-search REST API
-├── chat-service/        # Messages + STOMP/WebSocket + presence
-├── chat-ui/             # Angular frontend
-└── docker-compose.yml   # Local Mongo (+ optional Kafka/Zookeeper)
-```
+Each service has its own MongoDB database (`authdb`, `chatdb`). All client web
+traffic flows through the single gateway, which also proxies WebSocket upgrades
+for STOMP.
 
 ## Local setup
 
@@ -112,28 +102,35 @@ All client requests go through the gateway (`http://localhost:8080`).
 
 ##### auth-service
 
-| Method | Path                              | Auth   | Description                         |
-| ------ | --------------------------------- | ------ | ----------------------------------- |
-| GET    | `/api/auth/health`                | –      | Health check                        |
-| POST   | `/api/auth/register`              | –      | Create an account, issues a JWT     |
-| POST   | `/api/auth/login`                 | –      | Log in, issues a JWT                |
-| GET    | `/api/auth/users/search?q=`       | JWT    | Search users by username            |
-| GET    | `/api/auth/users/{username}/online` | JWT  | Read a user's presence flag         |
+| Method | Path                                | Auth | Description                     |
+| ------ | ----------------------------------- | ---- | ------------------------------- |
+| GET    | `/api/auth/health`                  | –    | Health check                    |
+| POST   | `/api/auth/register`                | –    | Create an account, issues a JWT |
+| POST   | `/api/auth/login`                   | –    | Log in, issues a JWT            |
+| GET    | `/api/auth/users/search?q=`         | JWT  | Search users by username        |
+| GET    | `/api/auth/users/{username}/online` | JWT  | Read a user's presence flag     |
 
 ##### chat-service
 
-| Method | Path                          | Auth | Description                                   |
-|--------|-------------------------------|------|-----------------------------------------------|
-| GET    | `/api/messages/health`        | –    | Health check (used for cold-start warm-up)    |
-| GET    | `/api/messages/online`        | –    | Set of currently-connected usernames (presence) |
-| GET    | `/api/messages/{otherUser}`   | JWT  | Chat history between the caller and a user    |
-| WS     | `/ws` (STOMP)                 | JWT  | Realtime one-to-one messaging + presence  |
+| Method | Path                        | Auth | Description                                     |
+| ------ | --------------------------- | ---- | ----------------------------------------------- |
+| GET    | `/api/messages/health`      | –    | Health check (used for cold-start warm-up)      |
+| GET    | `/api/messages/online`      | –    | Set of currently-connected usernames (presence) |
+| GET    | `/api/messages/{otherUser}` | JWT  | Chat history between the caller and a user      |
+| WS     | `/ws` (STOMP)               | JWT  | Realtime one-to-one messaging + presence        |
 
 ## Limitations
 
-- **Cold start.** Render's free tier spins services down after ~15 minutes of idleness. The frontend automatically wakes the services on page load and shows a progress indicator, however it can take about 1-2 minutes to warm up.
-- **Contacts are stored in local storage.** A users contacts aren't saved to a database and so disappear on a new device.
-- **Kafka is not wired up.** I couldn't find a free way to deploy kafka. The dependency is present and a `docker-compose` broker is provided, but message/presence events are not published to Kafka. Kafka auto-configuration is excluded in `auth-service`, and presence is handled in-memory by `chat-service`.
+- **Cold start.** Render's free tier spins services down after ~15 minutes of
+  idleness. The frontend automatically wakes the services on page load and shows
+  a progress indicator, however it can take about 1-2 minutes to warm up.
+- **Contacts are stored in local storage.** A users contacts aren't saved to a
+  database and so disappear on a new device.
+- **Kafka is not wired up.** I couldn't find a free way to deploy kafka. The
+  dependency is present and a `docker-compose` broker is provided, but
+  message/presence events are not published to Kafka. Kafka auto-configuration
+  is excluded in `auth-service`, and presence is handled in-memory by
+  `chat-service`.
 
 ## License
 

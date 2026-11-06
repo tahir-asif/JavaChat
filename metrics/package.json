@@ -1,0 +1,16 @@
+{
+  "name": "chat-platform-metrics",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stack:up": "bash scripts/start-local.sh",
+    "stack:down": "bash scripts/stop-local.sh",
+    "smoke": "node src/load.mjs --clients 2 --duration 10 --warmup 2",
+    "measure:load": "node src/load.mjs",
+    "measure:history": "node src/history.mjs"
+  },
+  "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
+    "ws": "^8.18.0"
+  }
+}
